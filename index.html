@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#09111c">
+  <meta name="description" content="Το FuelCalc υπολογίζει το καύσιμο και το εκτιμώμενο κόστος ενός ταξιδιού με πολλαπλούς ανεφοδιασμούς.">
+  <title>FuelCalc · Κόστος ταξιδιού</title>
+  <link rel="stylesheet" href="resources/style.css">
+</head>
+<body>
+  <main class="app">
+    <a class="app-header-link" href="" aria-label="Ανανέωση FuelCalc">
+      <header class="app-header">
+        <span class="brand-mark" aria-hidden="true">FC</span>
+        <div>
+          <h1>Fuel<span>Calc</span></h1>
+          <p class="tagline">Το πραγματικό κόστος του ταξιδιού σου</p>
+        </div>
+      </header>
+    </a>
+
+    <section class="card">
+      <h2>
+        <span class="step">1</span>
+        Αρχικό καύσιμο
+        <button id="resetBtn" class="btn-mini" type="button">Νέο ταξίδι</button>
+      </h2>
+
+      <label for="initialPrice">Τιμή λίτρου πριν από το ταξίδι</label>
+      <div class="unit-field featured-field">
+        <input id="initialPrice" class="input" type="text" inputmode="decimal" autocomplete="off" maxlength="7" placeholder="0,000" aria-describedby="initialPriceHint">
+        <span class="unit">€/L</span>
+      </div>
+      <p id="initialPriceHint" class="hint">Χρησιμοποιείται μόνο για το καύσιμο που δεν καλύπτεται από τους ανεφοδιασμούς.</p>
+    </section>
+
+    <section class="card">
+      <h2>
+        <span class="step step-blue">2</span>
+        Ανεφοδιασμοί
+        <span id="refuelCount" class="count" hidden>0</span>
+      </h2>
+
+      <p id="noRefuelsHint" class="empty-hint">Δεν έχει προστεθεί ανεφοδιασμός.</p>
+      <div id="refuelList" class="refuel-list"></div>
+
+      <button id="addRefuelBtn" class="btn-add-refuel" type="button">
+        <span aria-hidden="true">+</span>
+        Προσθήκη ανεφοδιασμού
+      </button>
+      <p class="hint">Τα λίτρα κάθε ανεφοδιασμού υπολογίζονται αυτόματα από το ποσό και την τιμή λίτρου.</p>
+    </section>
+
+    <section class="card">
+      <h2><span class="step">3</span> Στοιχεία ταξιδιού</h2>
+
+      <div class="field-grid">
+        <div>
+          <label for="distance">Απόσταση</label>
+          <div class="unit-field">
+            <input id="distance" class="input" type="text" inputmode="decimal" autocomplete="off" maxlength="9" placeholder="0">
+            <span class="unit">km</span>
+          </div>
+        </div>
+        <div>
+          <label for="consumption">Κατανάλωση</label>
+          <div class="unit-field">
+            <input id="consumption" class="input" type="text" inputmode="decimal" autocomplete="off" maxlength="7" placeholder="0,0">
+            <span class="unit">L/100km</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card result-card">
+      <h2><span class="step step-blue">4</span> Αποτέλεσμα</h2>
+
+      <div id="resultsRegion" aria-live="polite">
+        <p id="resultsHint" class="empty-hint result-hint">Συμπλήρωσε τα στοιχεία για να υπολογιστεί το ταξίδι.</p>
+
+        <div id="results" hidden>
+          <div class="cost-result">
+            <span class="cost-label">Εκτιμώμενο κόστος ταξιδιού</span>
+            <strong id="tripCost" class="cost-value">0,00&nbsp;€</strong>
+          </div>
+
+          <div class="stats">
+            <div class="stat">
+              <span class="stat-label">Καύσιμο που καταναλώθηκε</span>
+              <strong id="tripLiters" class="stat-value">0,00 L</strong>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Κόστος ανά 100 km</span>
+              <strong id="costPer100" class="stat-value">0,00 €</strong>
+            </div>
+          </div>
+
+          <div class="breakdown">
+            <div class="breakdown-row">
+              <span>Σύνολο ανεφοδιασμών</span>
+              <strong id="refuelTotals">0,00 L · 0,00 €</strong>
+            </div>
+            <div id="averagePriceRow" class="breakdown-row">
+              <span>Μέση τιμή ανεφοδιασμών</span>
+              <strong id="averagePrice">0,000 €/L</strong>
+            </div>
+            <div id="initialFuelRow" class="breakdown-row" hidden>
+              <span>Αρχικό καύσιμο που καταναλώθηκε</span>
+              <strong id="initialFuel">0,00 L · 0,00 €</strong>
+            </div>
+            <div id="remainingFuelRow" class="breakdown-row" hidden>
+              <span>Καύσιμο ανεφοδιασμών που περίσσεψε</span>
+              <strong id="remainingFuel">0,00 L</strong>
+            </div>
+          </div>
+
+          <p id="methodNote" class="method-note"></p>
+        </div>
+      </div>
+    </section>
+
+    <footer>FuelCalc · Κάθε λίτρο μετράει</footer>
+  </main>
+
+  <script src="resources/script.js"></script>
+</body>
+</html>
