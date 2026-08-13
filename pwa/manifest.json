@@ -1,0 +1,31 @@
+{
+    "id": "fuelcalc",
+    "name": "FuelCalc",
+    "short_name": "FuelCalc",
+    "categories": [
+            "productivity"
+        ],
+    "start_url": "../",
+    "scope": "../",
+    "display": "standalone",    
+    "dir": "ltr",
+    "background_color": "#09111c",
+    "theme_color": "#09111c",
+    "description": "Το FuelCalc υπολογίζει το καύσιμο και το εκτιμώμενο κόστος ενός ταξιδιού με πολλαπλούς ανεφοδιασμούς.",
+    "orientation": "portrait", 
+    "lang": "el",
+    "icons": [
+        {
+            "src": "../resources/logo.svg",
+            "type": "image/svg+xml",
+            "sizes": "any",
+            "purpose": "any"
+        },
+        {
+            "src": "../resources/logo.svg",
+            "type": "image/svg+xml",
+            "sizes": "any",
+            "purpose": "any"
+        }
+    ]
+}

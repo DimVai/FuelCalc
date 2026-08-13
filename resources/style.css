@@ -80,32 +80,12 @@ button {
 }
 
 .brand-mark {
-  position: relative;
   width: 56px;
   height: 56px;
   flex: none;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: block;
   border-radius: 17px;
-  color: #031a22;
-  background: linear-gradient(145deg, #a3edf8 0%, var(--blue) 55%, #1687ac 100%);
   box-shadow: 0 8px 20px rgba(32, 165, 207, 0.3);
-  font-size: 18px;
-  font-weight: 900;
-  letter-spacing: -1px;
-}
-
-.brand-mark::after {
-  content: "";
-  position: absolute;
-  right: -16px;
-  bottom: -17px;
-  width: 42px;
-  height: 42px;
-  border: 7px solid rgba(8, 37, 51, 0.28);
-  border-radius: 50%;
 }
 
 h1 {

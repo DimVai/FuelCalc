@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">FuelCalc logo</title>
+  <desc id="desc">A cyan fuel drop with an orange route marker on a dark rounded square.</desc>
+
+  <defs>
+    <linearGradient id="background" x1="72" y1="40" x2="440" y2="472" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#16273A"/>
+      <stop offset="1" stop-color="#09111C"/>
+    </linearGradient>
+    <linearGradient id="drop" x1="154" y1="116" x2="358" y2="390" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A3EDF8"/>
+      <stop offset="0.52" stop-color="#37B7DA"/>
+      <stop offset="1" stop-color="#1687AC"/>
+    </linearGradient>
+    <linearGradient id="route" x1="203" y1="284" x2="336" y2="347" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFC06F"/>
+      <stop offset="1" stop-color="#FF720E"/>
+    </linearGradient>
+    <filter id="shadow" x="76" y="60" width="360" height="396" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#02080E" flood-opacity="0.48"/>
+    </filter>
+  </defs>
+
+  <rect x="20" y="20" width="472" height="472" rx="112" fill="url(#background)"/>
+  <rect x="21.5" y="21.5" width="469" height="469" rx="110.5" fill="none" stroke="#FFFFFF" stroke-opacity="0.08" stroke-width="3"/>
+
+  <g transform="translate(-30.72 -30.72) scale(1.12)">
+    <g filter="url(#shadow)">
+      <path d="M256 84C222 132 143 219 143 303C143 370 193 421 256 421C319 421 369 370 369 303C369 219 290 132 256 84Z" fill="url(#drop)"/>
+      <path d="M256 116C225 160 172 226 172 298C172 350 208 389 256 389" fill="none" stroke="#D9F8FF" stroke-opacity="0.34" stroke-width="12" stroke-linecap="round"/>
+    </g>
+
+    <path d="M198 312C218 284 250 277 278 289C303 300 323 293 334 273" fill="none" stroke="#082533" stroke-opacity="0.68" stroke-width="38" stroke-linecap="round"/>
+    <path d="M198 312C218 284 250 277 278 289C303 300 323 293 334 273" fill="none" stroke="url(#route)" stroke-width="18" stroke-linecap="round"/>
+    <circle cx="198" cy="312" r="19" fill="#FF8A32" stroke="#FFF1E4" stroke-width="7"/>
+    <circle cx="334" cy="273" r="19" fill="#FF8A32" stroke="#FFF1E4" stroke-width="7"/>
+
+    <path d="M231 359H281" stroke="#082533" stroke-opacity="0.7" stroke-width="22" stroke-linecap="round"/>
+    <path d="M239 359H273" stroke="#D9F8FF" stroke-width="8" stroke-linecap="round"/>
+  </g>
+</svg>

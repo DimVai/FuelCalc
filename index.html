@@ -6,13 +6,15 @@
   <meta name="theme-color" content="#09111c">
   <meta name="description" content="Το FuelCalc υπολογίζει το καύσιμο και το εκτιμώμενο κόστος ενός ταξιδιού με πολλαπλούς ανεφοδιασμούς.">
   <title>FuelCalc · Κόστος ταξιδιού</title>
+  <link rel="icon" href="resources/logo.svg" type="image/svg+xml">
+  <link rel="manifest" href="pwa/manifest.json">
   <link rel="stylesheet" href="resources/style.css">
 </head>
 <body>
   <main class="app">
     <a class="app-header-link" href="" aria-label="Ανανέωση FuelCalc">
       <header class="app-header">
-        <span class="brand-mark" aria-hidden="true">FC</span>
+        <img class="brand-mark" src="resources/logo.svg" alt="" width="56" height="56">
         <div>
           <h1>Fuel<span>Calc</span></h1>
           <p class="tagline">Το πραγματικό κόστος του ταξιδιού σου</p>
@@ -120,9 +122,10 @@
       </div>
     </section>
 
-    <footer>FuelCalc · Κάθε λίτρο μετράει</footer>
+    <footer>FuelCalc</footer>
   </main>
 
   <script src="resources/script.js"></script>
+  <script defer src="pwa/pwa.js"></script>
 </body>
 </html>
