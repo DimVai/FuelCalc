@@ -43,6 +43,7 @@
   const tollInitialBalanceResult = document.getElementById('tollInitialBalanceResult');
   const tollTopUpTotal = document.getElementById('tollTopUpTotal');
   const tollFinalBalanceResult = document.getElementById('tollFinalBalanceResult');
+  const tollBalanceChangeEl = document.getElementById('tollBalanceChange');
 
   const numberFormatters = new Map();
 
@@ -104,6 +105,11 @@
 
   function formatMoney(value) {
     return formatter(2, 2).format(value) + '\u00a0€';
+  }
+
+  function formatSignedMoney(value) {
+    const sign = value > 0 ? '+' : value < 0 ? '−' : '';
+    return sign + formatMoney(Math.abs(value));
   }
 
   function formatFuelLiters(value) {
@@ -511,6 +517,7 @@
     tollInitialBalanceResult.textContent = formatMoney(initialBalance);
     tollTopUpTotal.textContent = formatMoney(totalTopUps);
     tollFinalBalanceResult.textContent = formatMoney(finalBalance);
+    tollBalanceChangeEl.textContent = formatSignedMoney(finalBalance - initialBalance);
     tollResultsHint.hidden = true;
     tollResults.hidden = false;
   }
