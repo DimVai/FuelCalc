@@ -106,6 +106,46 @@ h1 span {
   font-size: 13px;
 }
 
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--border-soft);
+  border-radius: 15px;
+  background: var(--card-inner);
+}
+
+.tab-button {
+  min-height: 44px;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 11px;
+  color: var(--muted);
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 750;
+  transition: color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+
+.tab-button[aria-selected="true"] {
+  color: #031a22;
+  background: linear-gradient(135deg, #8ae8f7, #20a5cf);
+  box-shadow: 0 4px 12px rgba(32, 165, 207, 0.26);
+}
+
+.tab-button:focus-visible {
+  outline: 2px solid var(--blue-soft);
+  outline-offset: 2px;
+}
+
+.tab-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .card {
   padding: 20px 16px;
   border: 1px solid var(--border-soft);
@@ -231,21 +271,21 @@ label {
   text-align: center;
 }
 
-.refuel-list {
+.entry-list {
   display: flex;
   flex-direction: column;
   gap: 10px;
   margin-bottom: 12px;
 }
 
-.refuel-item {
+.entry-item {
   padding: 12px;
   border: 1px solid var(--border-soft);
   border-radius: 15px;
   background: var(--card-inner);
 }
 
-.refuel-heading {
+.entry-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -253,9 +293,14 @@ label {
   margin-bottom: 11px;
 }
 
-.refuel-title {
+.entry-title {
   font-size: 13px;
   font-weight: 750;
+}
+
+.entry-heading .entry-title {
+  margin: 0;
+  color: var(--text);
 }
 
 .refuel-fields,
@@ -303,7 +348,7 @@ label {
   transform: scale(0.9);
 }
 
-.btn-add-refuel {
+.btn-add-entry {
   width: 100%;
   min-height: 48px;
   display: flex;
@@ -321,12 +366,12 @@ label {
   transition: transform 0.12s, filter 0.12s;
 }
 
-.btn-add-refuel span {
+.btn-add-entry span {
   font-size: 21px;
   line-height: 1;
 }
 
-.btn-add-refuel:active {
+.btn-add-entry:active {
   transform: scale(0.98);
 }
 
@@ -477,7 +522,12 @@ footer {
 }
 
 @media (hover: hover) {
-  .btn-add-refuel:hover {
+  .tab-button:not([aria-selected="true"]):hover {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.045);
+  }
+
+  .btn-add-entry:hover {
     filter: brightness(1.08);
   }
 

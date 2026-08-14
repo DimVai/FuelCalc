@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#09111c">
-  <meta name="description" content="Το FuelCalc υπολογίζει το καύσιμο και το εκτιμώμενο κόστος ενός ταξιδιού με πολλαπλούς ανεφοδιασμούς.">
+  <meta name="description" content="Το FuelCalc υπολογίζει το κόστος καυσίμου και διοδίων ενός ταξιδιού.">
   <title>FuelCalc · Κόστος ταξιδιού</title>
   <link rel="icon" href="resources/logo.svg" type="image/svg+xml">
   <link rel="manifest" href="pwa/manifest.json">
@@ -22,105 +22,189 @@
       </header>
     </a>
 
-    <section class="card">
-      <h2>
-        <span class="step">1</span>
-        Αρχικό καύσιμο
-        <button id="resetBtn" class="btn-mini" type="button">Νέο ταξίδι</button>
-      </h2>
+    <nav class="tabs" role="tablist" aria-label="Κατηγορία κόστους ταξιδιού">
+      <button id="fuelTab" class="tab-button" type="button" role="tab" aria-selected="true" aria-controls="fuelPanel">Βενζίνη</button>
+      <button id="tollTab" class="tab-button" type="button" role="tab" aria-selected="false" aria-controls="tollPanel" tabindex="-1">Διόδια</button>
+    </nav>
 
-      <label for="initialPrice">Τιμή λίτρου πριν από το ταξίδι</label>
-      <div class="unit-field featured-field">
-        <input id="initialPrice" class="input" type="text" inputmode="decimal" autocomplete="off" maxlength="7" placeholder="0,000" aria-describedby="initialPriceHint">
-        <span class="unit">€/L</span>
-      </div>
-      <p id="initialPriceHint" class="hint">Χρησιμοποιείται μόνο για το καύσιμο που δεν καλύπτεται από τους ανεφοδιασμούς.</p>
-    </section>
+    <div id="fuelPanel" class="tab-panel" role="tabpanel" aria-labelledby="fuelTab">
+      <section class="card">
+        <h2>
+          <span class="step">1</span>
+          Αρχικό καύσιμο
+          <button id="fuelResetBtn" class="btn-mini" type="button">Νέο ταξίδι</button>
+        </h2>
 
-    <section class="card">
-      <h2>
-        <span class="step step-blue">2</span>
-        Ανεφοδιασμοί
-        <span id="refuelCount" class="count" hidden>0</span>
-      </h2>
+        <label for="fuelInitialPrice">Τιμή λίτρου πριν από το ταξίδι</label>
+        <div class="unit-field featured-field">
+          <input id="fuelInitialPrice" class="input" type="text" inputmode="decimal" autocomplete="off" maxlength="7" placeholder="0,000" aria-describedby="fuelInitialPriceHint">
+          <span class="unit">€/L</span>
+        </div>
+        <p id="fuelInitialPriceHint" class="hint">Χρησιμοποιείται μόνο για το καύσιμο που δεν καλύπτεται από τους ανεφοδιασμούς.</p>
+      </section>
 
-      <p id="noRefuelsHint" class="empty-hint">Δεν έχει προστεθεί ανεφοδιασμός.</p>
-      <div id="refuelList" class="refuel-list"></div>
+      <section class="card">
+        <h2>
+          <span class="step step-blue">2</span>
+          Ανεφοδιασμοί
+          <span id="fuelRefuelCount" class="count" hidden>0</span>
+        </h2>
 
-      <button id="addRefuelBtn" class="btn-add-refuel" type="button">
-        <span aria-hidden="true">+</span>
-        Προσθήκη ανεφοδιασμού
-      </button>
-      <p class="hint">Τα λίτρα κάθε ανεφοδιασμού υπολογίζονται αυτόματα από το ποσό και την τιμή λίτρου.</p>
-    </section>
+        <p id="fuelNoRefuelsHint" class="empty-hint">Δεν έχει προστεθεί ανεφοδιασμός.</p>
+        <div id="fuelRefuelList" class="entry-list"></div>
 
-    <section class="card">
-      <h2><span class="step">3</span> Στοιχεία ταξιδιού</h2>
+        <button id="fuelAddRefuelBtn" class="btn-add-entry" type="button">
+          <span aria-hidden="true">+</span>
+          Προσθήκη ανεφοδιασμού
+        </button>
+        <p class="hint">Τα λίτρα κάθε ανεφοδιασμού υπολογίζονται αυτόματα από το ποσό και την τιμή λίτρου.</p>
+      </section>
 
-      <div class="field-grid">
-        <div>
-          <label for="distance">Απόσταση</label>
-          <div class="unit-field">
-            <input id="distance" class="input" type="text" inputmode="decimal" autocomplete="off" maxlength="9" placeholder="0">
-            <span class="unit">km</span>
+      <section class="card">
+        <h2><span class="step">3</span> Στοιχεία ταξιδιού</h2>
+
+        <div class="field-grid">
+          <div>
+            <label for="fuelDistance">Απόσταση</label>
+            <div class="unit-field">
+              <input id="fuelDistance" class="input" type="text" inputmode="decimal" autocomplete="off" maxlength="9" placeholder="0">
+              <span class="unit">km</span>
+            </div>
+          </div>
+          <div>
+            <label for="fuelConsumption">Κατανάλωση</label>
+            <div class="unit-field">
+              <input id="fuelConsumption" class="input" type="text" inputmode="decimal" autocomplete="off" maxlength="7" placeholder="0,0">
+              <span class="unit">L/100km</span>
+            </div>
           </div>
         </div>
-        <div>
-          <label for="consumption">Κατανάλωση</label>
-          <div class="unit-field">
-            <input id="consumption" class="input" type="text" inputmode="decimal" autocomplete="off" maxlength="7" placeholder="0,0">
-            <span class="unit">L/100km</span>
+      </section>
+
+      <section class="card result-card">
+        <h2><span class="step step-blue">4</span> Αποτέλεσμα</h2>
+
+        <div id="fuelResultsRegion" aria-live="polite">
+          <p id="fuelResultsHint" class="empty-hint result-hint">Συμπλήρωσε τα στοιχεία για να υπολογιστεί το ταξίδι.</p>
+
+          <div id="fuelResults" hidden>
+            <div class="cost-result">
+              <span class="cost-label">Εκτιμώμενο κόστος ταξιδιού</span>
+              <strong id="fuelTripCost" class="cost-value">0,00&nbsp;€</strong>
+            </div>
+
+            <div class="stats">
+              <div class="stat">
+                <span class="stat-label">Καύσιμο που καταναλώθηκε</span>
+                <strong id="fuelTripLiters" class="stat-value">0,00 L</strong>
+              </div>
+              <div class="stat">
+                <span class="stat-label">Κόστος ανά 100 km</span>
+                <strong id="fuelCostPer100" class="stat-value">0,00 €</strong>
+              </div>
+            </div>
+
+            <div class="breakdown">
+              <div class="breakdown-row">
+                <span>Σύνολο ανεφοδιασμών</span>
+                <strong id="fuelRefuelTotals">0,00 L · 0,00 €</strong>
+              </div>
+              <div id="fuelAveragePriceRow" class="breakdown-row">
+                <span>Μέση τιμή ανεφοδιασμών</span>
+                <strong id="fuelAveragePrice">0,000 €/L</strong>
+              </div>
+              <div id="fuelInitialFuelRow" class="breakdown-row" hidden>
+                <span>Αρχικό καύσιμο που καταναλώθηκε</span>
+                <strong id="fuelInitialFuel">0,00 L · 0,00 €</strong>
+              </div>
+              <div id="fuelRemainingFuelRow" class="breakdown-row" hidden>
+                <span>Καύσιμο ανεφοδιασμών που περίσσεψε</span>
+                <strong id="fuelRemainingFuel">0,00 L</strong>
+              </div>
+            </div>
+
+            <p id="fuelMethodNote" class="method-note"></p>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
 
-    <section class="card result-card">
-      <h2><span class="step step-blue">4</span> Αποτέλεσμα</h2>
+    <div id="tollPanel" class="tab-panel" role="tabpanel" aria-labelledby="tollTab" hidden>
+      <section class="card">
+        <h2>
+          <span class="step">1</span>
+          Αρχικό υπόλοιπο e-pass
+          <button id="tollResetBtn" class="btn-mini" type="button">Νέο ταξίδι</button>
+        </h2>
 
-      <div id="resultsRegion" aria-live="polite">
-        <p id="resultsHint" class="empty-hint result-hint">Συμπλήρωσε τα στοιχεία για να υπολογιστεί το ταξίδι.</p>
-
-        <div id="results" hidden>
-          <div class="cost-result">
-            <span class="cost-label">Εκτιμώμενο κόστος ταξιδιού</span>
-            <strong id="tripCost" class="cost-value">0,00&nbsp;€</strong>
-          </div>
-
-          <div class="stats">
-            <div class="stat">
-              <span class="stat-label">Καύσιμο που καταναλώθηκε</span>
-              <strong id="tripLiters" class="stat-value">0,00 L</strong>
-            </div>
-            <div class="stat">
-              <span class="stat-label">Κόστος ανά 100 km</span>
-              <strong id="costPer100" class="stat-value">0,00 €</strong>
-            </div>
-          </div>
-
-          <div class="breakdown">
-            <div class="breakdown-row">
-              <span>Σύνολο ανεφοδιασμών</span>
-              <strong id="refuelTotals">0,00 L · 0,00 €</strong>
-            </div>
-            <div id="averagePriceRow" class="breakdown-row">
-              <span>Μέση τιμή ανεφοδιασμών</span>
-              <strong id="averagePrice">0,000 €/L</strong>
-            </div>
-            <div id="initialFuelRow" class="breakdown-row" hidden>
-              <span>Αρχικό καύσιμο που καταναλώθηκε</span>
-              <strong id="initialFuel">0,00 L · 0,00 €</strong>
-            </div>
-            <div id="remainingFuelRow" class="breakdown-row" hidden>
-              <span>Καύσιμο ανεφοδιασμών που περίσσεψε</span>
-              <strong id="remainingFuel">0,00 L</strong>
-            </div>
-          </div>
-
-          <p id="methodNote" class="method-note"></p>
+        <label for="tollInitialBalance">Υπόλοιπο πριν από το ταξίδι</label>
+        <div class="unit-field featured-field">
+          <input id="tollInitialBalance" class="input" type="text" inputmode="decimal" autocomplete="off" maxlength="10" placeholder="0,00" aria-describedby="tollInitialBalanceHint">
+          <span class="unit">€</span>
         </div>
-      </div>
-    </section>
+        <p id="tollInitialBalanceHint" class="hint">Το διαθέσιμο υπόλοιπο e-pass πριν από την πρώτη διέλευση.</p>
+      </section>
+
+      <section class="card">
+        <h2>
+          <span class="step step-blue">2</span>
+          Ανατροφοδοτήσεις e-pass
+          <span id="tollTopUpCount" class="count" hidden>0</span>
+        </h2>
+
+        <p id="tollNoTopUpsHint" class="empty-hint">Δεν έχει προστεθεί ανατροφοδότηση.</p>
+        <div id="tollTopUpList" class="entry-list"></div>
+
+        <button id="tollAddTopUpBtn" class="btn-add-entry" type="button">
+          <span aria-hidden="true">+</span>
+          Προσθήκη ανατροφοδότησης
+        </button>
+        <p class="hint">Πρόσθεσε κάθε ανατροφοδότηση που έγινε κατά τη διάρκεια του ταξιδιού.</p>
+      </section>
+
+      <section class="card">
+        <h2><span class="step">3</span> Τελικό υπόλοιπο e-pass</h2>
+
+        <label for="tollFinalBalance">Υπόλοιπο μετά το ταξίδι</label>
+        <div class="unit-field featured-field">
+          <input id="tollFinalBalance" class="input" type="text" inputmode="decimal" autocomplete="off" maxlength="10" placeholder="0,00" aria-describedby="tollFinalBalanceHint">
+          <span class="unit">€</span>
+        </div>
+        <p id="tollFinalBalanceHint" class="hint">Το διαθέσιμο υπόλοιπο e-pass μετά την τελευταία διέλευση.</p>
+      </section>
+
+      <section class="card result-card">
+        <h2><span class="step step-blue">4</span> Αποτέλεσμα</h2>
+
+        <div id="tollResultsRegion" aria-live="polite">
+          <p id="tollResultsHint" class="empty-hint result-hint">Συμπλήρωσε το αρχικό και το τελικό υπόλοιπο.</p>
+
+          <div id="tollResults" hidden>
+            <div class="cost-result">
+              <span class="cost-label">Κόστος διοδίων</span>
+              <strong id="tollCost" class="cost-value">0,00&nbsp;€</strong>
+            </div>
+
+            <div class="breakdown">
+              <div class="breakdown-row">
+                <span>Αρχικό υπόλοιπο</span>
+                <strong id="tollInitialBalanceResult">0,00 €</strong>
+              </div>
+              <div class="breakdown-row">
+                <span>Σύνολο ανατροφοδοτήσεων</span>
+                <strong id="tollTopUpTotal">0,00 €</strong>
+              </div>
+              <div class="breakdown-row">
+                <span>Τελικό υπόλοιπο</span>
+                <strong id="tollFinalBalanceResult">0,00 €</strong>
+              </div>
+            </div>
+
+            <p class="method-note">Αρχικό υπόλοιπο + ανατροφοδοτήσεις − τελικό υπόλοιπο.</p>
+          </div>
+        </div>
+      </section>
+    </div>
 
     <footer>FuelCalc</footer>
   </main>

@@ -1,42 +1,95 @@
 (() => {
   'use strict';
 
-  const STORAGE_KEY = 'fuelcalc-state-v1';
+  const FUEL_STORAGE_KEY = 'fuelcalc-fuel-state-v1';
+  const TOLL_STORAGE_KEY = 'fuelcalc-toll-state-v1';
 
-  const initialPriceInput = document.getElementById('initialPrice');
-  const distanceInput = document.getElementById('distance');
-  const consumptionInput = document.getElementById('consumption');
-  const refuelList = document.getElementById('refuelList');
-  const refuelCount = document.getElementById('refuelCount');
-  const noRefuelsHint = document.getElementById('noRefuelsHint');
-  const addRefuelBtn = document.getElementById('addRefuelBtn');
-  const resetBtn = document.getElementById('resetBtn');
+  const tabButtons = Array.from(document.querySelectorAll('[role="tab"]'));
 
-  const resultsHint = document.getElementById('resultsHint');
-  const results = document.getElementById('results');
-  const tripCostEl = document.getElementById('tripCost');
-  const tripLitersEl = document.getElementById('tripLiters');
-  const costPer100El = document.getElementById('costPer100');
-  const refuelTotalsEl = document.getElementById('refuelTotals');
-  const averagePriceRow = document.getElementById('averagePriceRow');
-  const averagePriceEl = document.getElementById('averagePrice');
-  const initialFuelRow = document.getElementById('initialFuelRow');
-  const initialFuelEl = document.getElementById('initialFuel');
-  const remainingFuelRow = document.getElementById('remainingFuelRow');
-  const remainingFuelEl = document.getElementById('remainingFuel');
-  const methodNote = document.getElementById('methodNote');
+  const fuelInitialPriceInput = document.getElementById('fuelInitialPrice');
+  const fuelDistanceInput = document.getElementById('fuelDistance');
+  const fuelConsumptionInput = document.getElementById('fuelConsumption');
+  const fuelRefuelList = document.getElementById('fuelRefuelList');
+  const fuelRefuelCount = document.getElementById('fuelRefuelCount');
+  const fuelNoRefuelsHint = document.getElementById('fuelNoRefuelsHint');
+  const fuelAddRefuelBtn = document.getElementById('fuelAddRefuelBtn');
+  const fuelResetBtn = document.getElementById('fuelResetBtn');
+
+  const fuelResultsHint = document.getElementById('fuelResultsHint');
+  const fuelResults = document.getElementById('fuelResults');
+  const fuelTripCostEl = document.getElementById('fuelTripCost');
+  const fuelTripLitersEl = document.getElementById('fuelTripLiters');
+  const fuelCostPer100El = document.getElementById('fuelCostPer100');
+  const fuelRefuelTotalsEl = document.getElementById('fuelRefuelTotals');
+  const fuelAveragePriceRow = document.getElementById('fuelAveragePriceRow');
+  const fuelAveragePriceEl = document.getElementById('fuelAveragePrice');
+  const fuelInitialFuelRow = document.getElementById('fuelInitialFuelRow');
+  const fuelInitialFuelEl = document.getElementById('fuelInitialFuel');
+  const fuelRemainingFuelRow = document.getElementById('fuelRemainingFuelRow');
+  const fuelRemainingFuelEl = document.getElementById('fuelRemainingFuel');
+  const fuelMethodNote = document.getElementById('fuelMethodNote');
+
+  const tollInitialBalanceInput = document.getElementById('tollInitialBalance');
+  const tollFinalBalanceInput = document.getElementById('tollFinalBalance');
+  const tollTopUpList = document.getElementById('tollTopUpList');
+  const tollTopUpCount = document.getElementById('tollTopUpCount');
+  const tollNoTopUpsHint = document.getElementById('tollNoTopUpsHint');
+  const tollAddTopUpBtn = document.getElementById('tollAddTopUpBtn');
+  const tollResetBtn = document.getElementById('tollResetBtn');
+
+  const tollResultsHint = document.getElementById('tollResultsHint');
+  const tollResults = document.getElementById('tollResults');
+  const tollCostEl = document.getElementById('tollCost');
+  const tollInitialBalanceResult = document.getElementById('tollInitialBalanceResult');
+  const tollTopUpTotal = document.getElementById('tollTopUpTotal');
+  const tollFinalBalanceResult = document.getElementById('tollFinalBalanceResult');
 
   const numberFormatters = new Map();
 
-  let state = {
+  let fuelState = {
     initialPrice: '',
     distance: '',
     consumption: '',
     refuels: []
   };
 
-  let nextRefuelId = Date.now();
-  let resetTimer = null;
+  let tollState = {
+    initialBalance: '',
+    finalBalance: '',
+    topUps: []
+  };
+
+  let nextFuelRefuelId = Date.now();
+  let nextTollTopUpId = Date.now();
+  let fuelResetTimer = null;
+  let tollResetTimer = null;
+
+  function activateTab(activeTab) {
+    for (const tab of tabButtons) {
+      const isActive = tab === activeTab;
+      tab.setAttribute('aria-selected', String(isActive));
+      tab.tabIndex = isActive ? 0 : -1;
+      document.getElementById(tab.getAttribute('aria-controls')).hidden = !isActive;
+    }
+  }
+
+  tabButtons.forEach((tab, index) => {
+    tab.addEventListener('click', () => activateTab(tab));
+
+    tab.addEventListener('keydown', event => {
+      let nextIndex;
+
+      if (event.key === 'ArrowRight') nextIndex = (index + 1) % tabButtons.length;
+      if (event.key === 'ArrowLeft') nextIndex = (index - 1 + tabButtons.length) % tabButtons.length;
+      if (event.key === 'Home') nextIndex = 0;
+      if (event.key === 'End') nextIndex = tabButtons.length - 1;
+      if (nextIndex === undefined) return;
+
+      event.preventDefault();
+      activateTab(tabButtons[nextIndex]);
+      tabButtons[nextIndex].focus();
+    });
+  });
 
   function formatter(minimumFractionDigits, maximumFractionDigits) {
     const key = minimumFractionDigits + '-' + maximumFractionDigits;
@@ -53,11 +106,11 @@
     return formatter(2, 2).format(value) + '\u00a0€';
   }
 
-  function formatLiters(value) {
+  function formatFuelLiters(value) {
     return formatter(2, 2).format(value) + '\u00a0L';
   }
 
-  function formatPrice(value) {
+  function formatFuelPrice(value) {
     return formatter(3, 3).format(value) + '\u00a0€/L';
   }
 
@@ -79,27 +132,33 @@
     return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
   }
 
-  function saveState() {
+  function parseNonNegativeDecimal(value) {
+    if (value === '') return null;
+    const parsed = Number(String(value).replace(',', '.'));
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+  }
+
+  function saveFuelState() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      localStorage.setItem(FUEL_STORAGE_KEY, JSON.stringify(fuelState));
     } catch (_) {
       // Η εφαρμογή συνεχίζει κανονικά αν η αποθήκευση δεν είναι διαθέσιμη.
     }
   }
 
-  function loadState() {
+  function loadFuelState() {
     try {
-      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      const saved = JSON.parse(localStorage.getItem(FUEL_STORAGE_KEY));
       if (!saved || typeof saved !== 'object') return;
 
-      state.initialPrice = typeof saved.initialPrice === 'string' ? saved.initialPrice : '';
-      state.distance = typeof saved.distance === 'string' ? saved.distance : '';
-      state.consumption = typeof saved.consumption === 'string' ? saved.consumption : '';
-      state.refuels = Array.isArray(saved.refuels)
+      fuelState.initialPrice = typeof saved.initialPrice === 'string' ? saved.initialPrice : '';
+      fuelState.distance = typeof saved.distance === 'string' ? saved.distance : '';
+      fuelState.consumption = typeof saved.consumption === 'string' ? saved.consumption : '';
+      fuelState.refuels = Array.isArray(saved.refuels)
         ? saved.refuels
           .filter(refuel => refuel && typeof refuel === 'object')
           .map(refuel => ({
-            id: Number.isFinite(refuel.id) ? refuel.id : nextRefuelId++,
+            id: Number.isFinite(refuel.id) ? refuel.id : nextFuelRefuelId++,
             amount: typeof refuel.amount === 'string' ? refuel.amount : '',
             price: typeof refuel.price === 'string' ? refuel.price : ''
           }))
@@ -114,18 +173,16 @@
       const sanitized = sanitizeDecimal(input.value, decimalPlaces);
       if (input.value !== sanitized) input.value = sanitized;
       onChange(sanitized);
-      saveState();
-      recalculate();
     });
   }
 
-  function createUnitField(refuel, key, unit, label, decimalPlaces) {
+  function createFuelRefuelUnitField(refuel, key, unit, label, decimalPlaces) {
     const wrapper = document.createElement('div');
     const field = document.createElement('div');
     field.className = 'unit-field' + (key === 'price' ? ' price' : '');
 
     const labelEl = document.createElement('label');
-    const inputId = 'refuel-' + refuel.id + '-' + key;
+    const inputId = 'fuel-refuel-' + refuel.id + '-' + key;
     labelEl.htmlFor = inputId;
     labelEl.textContent = label;
 
@@ -140,7 +197,9 @@
     input.value = refuel[key];
     bindDecimalInput(input, decimalPlaces, value => {
       refuel[key] = value;
-      updateRefuelLiters(refuel.id);
+      updateFuelRefuelLiters(refuel.id);
+      saveFuelState();
+      recalculateFuel();
     });
 
     const unitEl = document.createElement('span');
@@ -152,28 +211,28 @@
     return wrapper;
   }
 
-  function updateRefuelLiters(id) {
-    const refuel = state.refuels.find(item => item.id === id);
+  function updateFuelRefuelLiters(id) {
+    const refuel = fuelState.refuels.find(item => item.id === id);
     const output = document.querySelector('[data-liters-for="' + id + '"]');
     if (!refuel || !output) return;
 
     const amount = parseDecimal(refuel.amount);
     const price = parseDecimal(refuel.price);
-    output.textContent = amount > 0 && price > 0 ? formatLiters(amount / price) : '—';
+    output.textContent = amount > 0 && price > 0 ? formatFuelLiters(amount / price) : '—';
   }
 
-  function renderRefuels(focusId) {
-    refuelList.replaceChildren();
+  function renderFuelRefuels(focusId) {
+    fuelRefuelList.replaceChildren();
 
-    state.refuels.forEach((refuel, index) => {
+    fuelState.refuels.forEach((refuel, index) => {
       const item = document.createElement('article');
-      item.className = 'refuel-item';
+      item.className = 'entry-item';
 
       const heading = document.createElement('div');
-      heading.className = 'refuel-heading';
+      heading.className = 'entry-heading';
 
       const title = document.createElement('span');
-      title.className = 'refuel-title';
+      title.className = 'entry-title';
       title.textContent = 'Ανεφοδιασμός ' + (index + 1);
 
       const deleteBtn = document.createElement('button');
@@ -182,10 +241,10 @@
       deleteBtn.setAttribute('aria-label', 'Διαγραφή ανεφοδιασμού ' + (index + 1));
       deleteBtn.textContent = '×';
       deleteBtn.addEventListener('click', () => {
-        state.refuels = state.refuels.filter(item => item.id !== refuel.id);
-        saveState();
-        renderRefuels();
-        recalculate();
+        fuelState.refuels = fuelState.refuels.filter(item => item.id !== refuel.id);
+        saveFuelState();
+        renderFuelRefuels();
+        recalculateFuel();
       });
 
       heading.append(title, deleteBtn);
@@ -193,8 +252,8 @@
       const fields = document.createElement('div');
       fields.className = 'refuel-fields';
       fields.append(
-        createUnitField(refuel, 'amount', '€', 'Ποσό', 2),
-        createUnitField(refuel, 'price', '€/L', 'Τιμή λίτρου', 3)
+        createFuelRefuelUnitField(refuel, 'amount', '€', 'Ποσό', 2),
+        createFuelRefuelUnitField(refuel, 'price', '€/L', 'Τιμή λίτρου', 3)
       );
 
       const liters = document.createElement('p');
@@ -205,49 +264,49 @@
       liters.append(litersValue);
 
       item.append(heading, fields, liters);
-      refuelList.appendChild(item);
-      updateRefuelLiters(refuel.id);
+      fuelRefuelList.appendChild(item);
+      updateFuelRefuelLiters(refuel.id);
     });
 
-    const count = state.refuels.length;
-    refuelCount.textContent = count;
-    refuelCount.hidden = count === 0;
-    noRefuelsHint.hidden = count > 0;
+    const count = fuelState.refuels.length;
+    fuelRefuelCount.textContent = count;
+    fuelRefuelCount.hidden = count === 0;
+    fuelNoRefuelsHint.hidden = count > 0;
 
     if (focusId !== undefined) {
-      document.getElementById('refuel-' + focusId + '-amount')?.focus();
+      document.getElementById('fuel-refuel-' + focusId + '-amount')?.focus();
     }
   }
 
-  function showHint(message) {
-    results.hidden = true;
-    resultsHint.textContent = message;
-    resultsHint.hidden = false;
+  function showFuelHint(message) {
+    fuelResults.hidden = true;
+    fuelResultsHint.textContent = message;
+    fuelResultsHint.hidden = false;
   }
 
-  function recalculate() {
-    const initialPrice = parseDecimal(state.initialPrice);
-    const distance = parseDecimal(state.distance);
-    const consumption = parseDecimal(state.consumption);
+  function recalculateFuel() {
+    const initialPrice = parseDecimal(fuelState.initialPrice);
+    const distance = parseDecimal(fuelState.distance);
+    const consumption = parseDecimal(fuelState.consumption);
 
     if (initialPrice <= 0) {
-      showHint('Συμπλήρωσε την αρχική τιμή καυσίμου.');
+      showFuelHint('Συμπλήρωσε την αρχική τιμή καυσίμου.');
       return;
     }
 
     const refuels = [];
-    for (const refuel of state.refuels) {
+    for (const refuel of fuelState.refuels) {
       const amount = parseDecimal(refuel.amount);
       const price = parseDecimal(refuel.price);
       if (amount <= 0 || price <= 0) {
-        showHint('Συμπλήρωσε το ποσό και την τιμή σε κάθε ανεφοδιασμό ή διέγραψε την κενή εγγραφή.');
+        showFuelHint('Συμπλήρωσε το ποσό και την τιμή σε κάθε ανεφοδιασμό ή διέγραψε την κενή εγγραφή.');
         return;
       }
       refuels.push({ amount, price, liters: amount / price });
     }
 
     if (distance <= 0 || consumption <= 0) {
-      showHint('Συμπλήρωσε την απόσταση και τη μέση κατανάλωση του ταξιδιού.');
+      showFuelHint('Συμπλήρωσε την απόσταση και τη μέση κατανάλωση του ταξιδιού.');
       return;
     }
 
@@ -265,97 +324,302 @@
       initialFuelLiters = tripLiters;
       initialFuelCost = tripLiters * initialPrice;
       tripCost = initialFuelCost;
-      methodNote.textContent = 'Όλο το καύσιμο του ταξιδιού υπολογίστηκε με την αρχική τιμή, καθώς δεν καταχωρίστηκε ανεφοδιασμός.';
+      fuelMethodNote.textContent = 'Όλο το καύσιμο του ταξιδιού υπολογίστηκε με την αρχική τιμή, καθώς δεν καταχωρίστηκε ανεφοδιασμός.';
     } else if (tripLiters <= totalRefuelLiters) {
       tripCost = tripLiters * averageRefuelPrice;
       remainingRefuelLiters = totalRefuelLiters - tripLiters;
-      methodNote.textContent = remainingRefuelLiters > 0
+      fuelMethodNote.textContent = remainingRefuelLiters > 0
         ? 'Το κόστος υπολογίστηκε με τη σταθμισμένη μέση τιμή των ανεφοδιασμών. Το καύσιμο που περίσσεψε δεν χρεώθηκε στο ταξίδι.'
         : 'Τα λίτρα των ανεφοδιασμών κάλυψαν ακριβώς την κατανάλωση του ταξιδιού.';
     } else {
       initialFuelLiters = tripLiters - totalRefuelLiters;
       initialFuelCost = initialFuelLiters * initialPrice;
       tripCost = totalRefuelCost + initialFuelCost;
-      methodNote.textContent = 'Υπολογίστηκε ολόκληρο το κόστος των ανεφοδιασμών και τα επιπλέον λίτρα χρεώθηκαν με την αρχική τιμή.';
+      fuelMethodNote.textContent = 'Υπολογίστηκε ολόκληρο το κόστος των ανεφοδιασμών και τα επιπλέον λίτρα χρεώθηκαν με την αρχική τιμή.';
     }
 
-    tripCostEl.textContent = formatMoney(tripCost);
-    tripLitersEl.textContent = formatLiters(tripLiters);
-    costPer100El.textContent = formatMoney(tripCost / distance * 100);
-    refuelTotalsEl.textContent = formatLiters(totalRefuelLiters) + ' · ' + formatMoney(totalRefuelCost);
+    fuelTripCostEl.textContent = formatMoney(tripCost);
+    fuelTripLitersEl.textContent = formatFuelLiters(tripLiters);
+    fuelCostPer100El.textContent = formatMoney(tripCost / distance * 100);
+    fuelRefuelTotalsEl.textContent = formatFuelLiters(totalRefuelLiters) + ' · ' + formatMoney(totalRefuelCost);
 
-    averagePriceRow.hidden = totalRefuelLiters === 0;
-    averagePriceEl.textContent = totalRefuelLiters > 0 ? formatPrice(averageRefuelPrice) : '—';
+    fuelAveragePriceRow.hidden = totalRefuelLiters === 0;
+    fuelAveragePriceEl.textContent = totalRefuelLiters > 0 ? formatFuelPrice(averageRefuelPrice) : '—';
 
-    initialFuelRow.hidden = initialFuelLiters === 0;
-    initialFuelEl.textContent = formatLiters(initialFuelLiters) + ' · ' + formatMoney(initialFuelCost);
+    fuelInitialFuelRow.hidden = initialFuelLiters === 0;
+    fuelInitialFuelEl.textContent = formatFuelLiters(initialFuelLiters) + ' · ' + formatMoney(initialFuelCost);
 
-    remainingFuelRow.hidden = remainingRefuelLiters <= 0;
-    remainingFuelEl.textContent = formatLiters(remainingRefuelLiters);
+    fuelRemainingFuelRow.hidden = remainingRefuelLiters <= 0;
+    fuelRemainingFuelEl.textContent = formatFuelLiters(remainingRefuelLiters);
 
-    resultsHint.hidden = true;
-    results.hidden = false;
+    fuelResultsHint.hidden = true;
+    fuelResults.hidden = false;
   }
 
-  function resetApplication() {
-    state = {
+  function resetFuelCalculator() {
+    fuelState = {
       initialPrice: '',
       distance: '',
       consumption: '',
       refuels: []
     };
 
-    initialPriceInput.value = '';
-    distanceInput.value = '';
-    consumptionInput.value = '';
-    resetBtn.classList.remove('armed');
-    resetBtn.textContent = 'Νέο ταξίδι';
-    saveState();
-    renderRefuels();
-    recalculate();
-    initialPriceInput.focus();
+    fuelInitialPriceInput.value = '';
+    fuelDistanceInput.value = '';
+    fuelConsumptionInput.value = '';
+    fuelResetBtn.classList.remove('armed');
+    fuelResetBtn.textContent = 'Νέο ταξίδι';
+    saveFuelState();
+    renderFuelRefuels();
+    recalculateFuel();
+    fuelInitialPriceInput.focus();
   }
 
-  bindDecimalInput(initialPriceInput, 3, value => {
-    state.initialPrice = value;
+  function saveTollState() {
+    try {
+      localStorage.setItem(TOLL_STORAGE_KEY, JSON.stringify(tollState));
+    } catch (_) {
+      // Η εφαρμογή συνεχίζει κανονικά αν η αποθήκευση δεν είναι διαθέσιμη.
+    }
+  }
+
+  function loadTollState() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(TOLL_STORAGE_KEY));
+      if (!saved || typeof saved !== 'object') return;
+
+      tollState.initialBalance = typeof saved.initialBalance === 'string' ? saved.initialBalance : '';
+      tollState.finalBalance = typeof saved.finalBalance === 'string' ? saved.finalBalance : '';
+      tollState.topUps = Array.isArray(saved.topUps)
+        ? saved.topUps
+          .filter(topUp => topUp && typeof topUp === 'object')
+          .map(topUp => ({
+            id: Number.isFinite(topUp.id) ? topUp.id : nextTollTopUpId++,
+            amount: typeof topUp.amount === 'string' ? topUp.amount : ''
+          }))
+        : [];
+    } catch (_) {
+      // Αγνοείται μη έγκυρο αποθηκευμένο περιεχόμενο.
+    }
+  }
+
+  function renderTollTopUps(focusId) {
+    tollTopUpList.replaceChildren();
+
+    tollState.topUps.forEach((topUp, index) => {
+      const item = document.createElement('article');
+      item.className = 'entry-item';
+
+      const heading = document.createElement('div');
+      heading.className = 'entry-heading';
+
+      const inputId = 'toll-top-up-' + topUp.id + '-amount';
+      const labelEl = document.createElement('label');
+      labelEl.className = 'entry-title';
+      labelEl.htmlFor = inputId;
+      labelEl.textContent = 'Ανατροφοδότηση ' + (index + 1);
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'btn-delete';
+      deleteBtn.type = 'button';
+      deleteBtn.setAttribute('aria-label', 'Διαγραφή ανατροφοδότησης ' + (index + 1));
+      deleteBtn.textContent = '×';
+      deleteBtn.addEventListener('click', () => {
+        tollState.topUps = tollState.topUps.filter(item => item.id !== topUp.id);
+        saveTollState();
+        renderTollTopUps();
+        recalculateTolls();
+      });
+
+      heading.append(labelEl, deleteBtn);
+
+      const field = document.createElement('div');
+      field.className = 'unit-field';
+
+      const input = document.createElement('input');
+      input.id = inputId;
+      input.className = 'input';
+      input.type = 'text';
+      input.inputMode = 'decimal';
+      input.autocomplete = 'off';
+      input.maxLength = 10;
+      input.placeholder = '0,00';
+      input.value = topUp.amount;
+      bindDecimalInput(input, 2, value => {
+        topUp.amount = value;
+        saveTollState();
+        recalculateTolls();
+      });
+
+      const unitEl = document.createElement('span');
+      unitEl.className = 'unit';
+      unitEl.textContent = '€';
+
+      field.append(input, unitEl);
+      item.append(heading, field);
+      tollTopUpList.appendChild(item);
+    });
+
+    const count = tollState.topUps.length;
+    tollTopUpCount.textContent = count;
+    tollTopUpCount.hidden = count === 0;
+    tollNoTopUpsHint.hidden = count > 0;
+
+    if (focusId !== undefined) {
+      document.getElementById('toll-top-up-' + focusId + '-amount')?.focus();
+    }
+  }
+
+  function showTollHint(message) {
+    tollResults.hidden = true;
+    tollResultsHint.textContent = message;
+    tollResultsHint.hidden = false;
+  }
+
+  function recalculateTolls() {
+    const initialBalance = parseNonNegativeDecimal(tollState.initialBalance);
+    if (initialBalance === null) {
+      showTollHint('Συμπλήρωσε το αρχικό υπόλοιπο e-pass.');
+      return;
+    }
+
+    const topUpAmounts = [];
+    for (const topUp of tollState.topUps) {
+      const amount = parseDecimal(topUp.amount);
+      if (amount <= 0) {
+        showTollHint('Συμπλήρωσε το ποσό σε κάθε ανατροφοδότηση ή διέγραψε την κενή εγγραφή.');
+        return;
+      }
+      topUpAmounts.push(amount);
+    }
+
+    const finalBalance = parseNonNegativeDecimal(tollState.finalBalance);
+    if (finalBalance === null) {
+      showTollHint('Συμπλήρωσε το τελικό υπόλοιπο e-pass.');
+      return;
+    }
+
+    const totalTopUps = topUpAmounts.reduce((sum, amount) => sum + amount, 0);
+    const availableBalance = initialBalance + totalTopUps;
+    if (finalBalance > availableBalance) {
+      showTollHint('Το τελικό υπόλοιπο δεν μπορεί να είναι μεγαλύτερο από το αρχικό υπόλοιπο και τις ανατροφοδοτήσεις μαζί.');
+      return;
+    }
+
+    const tollCost = availableBalance - finalBalance;
+    tollCostEl.textContent = formatMoney(tollCost);
+    tollInitialBalanceResult.textContent = formatMoney(initialBalance);
+    tollTopUpTotal.textContent = formatMoney(totalTopUps);
+    tollFinalBalanceResult.textContent = formatMoney(finalBalance);
+    tollResultsHint.hidden = true;
+    tollResults.hidden = false;
+  }
+
+  function resetTollCalculator() {
+    tollState = {
+      initialBalance: '',
+      finalBalance: '',
+      topUps: []
+    };
+
+    tollInitialBalanceInput.value = '';
+    tollFinalBalanceInput.value = '';
+    tollResetBtn.classList.remove('armed');
+    tollResetBtn.textContent = 'Νέο ταξίδι';
+    saveTollState();
+    renderTollTopUps();
+    recalculateTolls();
+    tollInitialBalanceInput.focus();
+  }
+
+  bindDecimalInput(fuelInitialPriceInput, 3, value => {
+    fuelState.initialPrice = value;
+    saveFuelState();
+    recalculateFuel();
   });
 
-  bindDecimalInput(distanceInput, 2, value => {
-    state.distance = value;
+  bindDecimalInput(fuelDistanceInput, 2, value => {
+    fuelState.distance = value;
+    saveFuelState();
+    recalculateFuel();
   });
 
-  bindDecimalInput(consumptionInput, 2, value => {
-    state.consumption = value;
+  bindDecimalInput(fuelConsumptionInput, 2, value => {
+    fuelState.consumption = value;
+    saveFuelState();
+    recalculateFuel();
   });
 
-  addRefuelBtn.addEventListener('click', () => {
-    const refuel = { id: nextRefuelId++, amount: '', price: '' };
-    state.refuels.push(refuel);
-    saveState();
-    renderRefuels(refuel.id);
-    recalculate();
+  fuelAddRefuelBtn.addEventListener('click', () => {
+    const refuel = { id: nextFuelRefuelId++, amount: '', price: '' };
+    fuelState.refuels.push(refuel);
+    saveFuelState();
+    renderFuelRefuels(refuel.id);
+    recalculateFuel();
   });
 
-  resetBtn.addEventListener('click', () => {
-    if (!resetBtn.classList.contains('armed')) {
-      resetBtn.classList.add('armed');
-      resetBtn.textContent = 'Επιβεβαίωση';
-      clearTimeout(resetTimer);
-      resetTimer = setTimeout(() => {
-        resetBtn.classList.remove('armed');
-        resetBtn.textContent = 'Νέο ταξίδι';
+  fuelResetBtn.addEventListener('click', () => {
+    if (!fuelResetBtn.classList.contains('armed')) {
+      fuelResetBtn.classList.add('armed');
+      fuelResetBtn.textContent = 'Επιβεβαίωση';
+      clearTimeout(fuelResetTimer);
+      fuelResetTimer = setTimeout(() => {
+        fuelResetBtn.classList.remove('armed');
+        fuelResetBtn.textContent = 'Νέο ταξίδι';
       }, 2500);
       return;
     }
 
-    clearTimeout(resetTimer);
-    resetApplication();
+    clearTimeout(fuelResetTimer);
+    resetFuelCalculator();
   });
 
-  loadState();
-  initialPriceInput.value = state.initialPrice;
-  distanceInput.value = state.distance;
-  consumptionInput.value = state.consumption;
-  renderRefuels();
-  recalculate();
+  bindDecimalInput(tollInitialBalanceInput, 2, value => {
+    tollState.initialBalance = value;
+    saveTollState();
+    recalculateTolls();
+  });
+
+  bindDecimalInput(tollFinalBalanceInput, 2, value => {
+    tollState.finalBalance = value;
+    saveTollState();
+    recalculateTolls();
+  });
+
+  tollAddTopUpBtn.addEventListener('click', () => {
+    const topUp = { id: nextTollTopUpId++, amount: '' };
+    tollState.topUps.push(topUp);
+    saveTollState();
+    renderTollTopUps(topUp.id);
+    recalculateTolls();
+  });
+
+  tollResetBtn.addEventListener('click', () => {
+    if (!tollResetBtn.classList.contains('armed')) {
+      tollResetBtn.classList.add('armed');
+      tollResetBtn.textContent = 'Επιβεβαίωση';
+      clearTimeout(tollResetTimer);
+      tollResetTimer = setTimeout(() => {
+        tollResetBtn.classList.remove('armed');
+        tollResetBtn.textContent = 'Νέο ταξίδι';
+      }, 2500);
+      return;
+    }
+
+    clearTimeout(tollResetTimer);
+    resetTollCalculator();
+  });
+
+  loadFuelState();
+  fuelInitialPriceInput.value = fuelState.initialPrice;
+  fuelDistanceInput.value = fuelState.distance;
+  fuelConsumptionInput.value = fuelState.consumption;
+  renderFuelRefuels();
+  recalculateFuel();
+
+  loadTollState();
+  tollInitialBalanceInput.value = tollState.initialBalance;
+  tollFinalBalanceInput.value = tollState.finalBalance;
+  renderTollTopUps();
+  recalculateTolls();
 })();
