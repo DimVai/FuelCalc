@@ -356,7 +356,7 @@
     fuelInitialFuelEl.textContent = formatFuelLiters(initialFuelLiters) + ' · ' + formatMoney(initialFuelCost);
 
     fuelRemainingFuelRow.hidden = remainingRefuelLiters <= 0;
-    fuelRemainingFuelEl.textContent = formatFuelLiters(remainingRefuelLiters);
+    fuelRemainingFuelEl.textContent = formatFuelLiters(remainingRefuelLiters) + ' · ' + formatMoney(remainingRefuelLiters * averageRefuelPrice);
 
     fuelResultsHint.hidden = true;
     fuelResults.hidden = false;
